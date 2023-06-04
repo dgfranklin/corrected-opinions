@@ -22,7 +22,7 @@ export default function Home() {
             <ol className='list-decimal list-inside	text-base'>
               {
                 claims.map(claim => (
-                  <li className='mt-1.5 ms-5'>{claim}</li>
+                  <li key={claim} className='mt-1.5 ms-5'>{claim}</li>
                 ))
               }
             </ol>
