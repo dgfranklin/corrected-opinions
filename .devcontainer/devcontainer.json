@@ -1,8 +1,18 @@
 {
-	"image": "mcr.microsoft.com/vscode/devcontainers/base:0-jammy",
+	"image": "mcr.microsoft.com/devcontainers/base:1-jammy",
 
   "features": {
     "ghcr.io/devcontainers/features/node:1": {}
   },
-  "postCreateCommand": "yarn install"
+  "postCreateCommand": "yarn install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "GitHub.vscode-pull-request-github"
+      ]
+    }
+  }
 }
