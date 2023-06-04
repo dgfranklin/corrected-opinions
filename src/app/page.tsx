@@ -48,6 +48,10 @@ Your reponse should be a JSON-array:
         {role: 'user', 'content': JSON.stringify(incorrectOpionions)}]
     })
   });
+  if (!response.ok) {
+    const responseText = await response.text();
+    throw new Error(`Received OpenAI error '${response.statusText}'. Message: \n${responseText}`);
+  }
   const responseData = await response.json();
   const content = responseData.choices[0].message.content;
   return JSON.parse(content);
