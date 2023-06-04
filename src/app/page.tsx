@@ -64,9 +64,13 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
-      <header className="pt-[90px] pb-[64px]"><h1 className="text-center font-light	text-6xl text-[#226e93] leading-[66px]"> Corrected Opinions </h1></header>
-      <main className="max-w-7xl mx-auto px-12 py-6">
-        <div className='px-[1.25%]'>
+      <header className="py-16">
+        <h1 className="text-center font-light	text-4xl md:text-5xl lg:text-6xl text-[#226e93]">
+          Corrected Opinions
+        </h1>
+      </header>
+      <main className="max-w-7xl mx-auto md:px-12 py-6">
+        <div className='px-1 md:px-2 lg:px-3'>
           <div className='px-2'>
             <ol className='list-decimal list-inside	text-base'>
               {
