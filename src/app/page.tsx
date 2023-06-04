@@ -43,6 +43,7 @@ Your reponse should be a JSON-array:
     headers,
     body: JSON.stringify({
       model: 'gpt-4',
+      temperature: 0, // Make roughly deterministic
       messages: [
         {role: 'system', content: systemPrompt},
         {role: 'user', 'content': JSON.stringify(incorrectOpionions)}]
