@@ -9,3 +9,11 @@
 body {
   color: rgb(var(--foreground-rgb));
 }
+
+h1, h2 {
+  @apply text-primary
+}
+
+a {
+  @apply text-primary visited:text-primary-600
+}
