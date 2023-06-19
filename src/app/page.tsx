@@ -58,7 +58,7 @@ Your reponse should be a JSON-array:
 
 export default async function Home() {
   const incorrectOpinions = await getIncorrectOpinions();
-  const claims = await getCorrectOpinions(incorrectOpinions);
+  const claims = (await Promise.all(incorrectOpinions.map(opinion => getCorrectOpinions([opinion])))).flatMap(value => value)
 
   return (
     <div className="min-h-screen">
