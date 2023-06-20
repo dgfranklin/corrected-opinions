@@ -2,6 +2,18 @@ import * as cheerio from 'cheerio';
 
 import 'server-only';
 
+import {
+  SystemMessagePromptTemplate,
+  HumanMessagePromptTemplate,
+  ChatPromptTemplate,
+  PromptTemplate,
+} from "langchain/prompts";
+import { LLMChain } from "langchain/chains";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import { StructuredOutputParser } from "langchain/output_parsers";
+import { z } from "zod";
+import { cache } from 'react';
+
 async function getIncorrectOpinions(): Promise<string[]> {
   const response = await fetch('https://www.correctopinions.info/', { next: { revalidate: 60 } });
   const html = await response.text();
@@ -14,51 +26,50 @@ async function getIncorrectOpinions(): Promise<string[]> {
   return contents;
 }
 
-async function getCorrectOpinions(incorrectOpionions: string[]): Promise<string[]> {
-  const headers = new Headers();
-  headers.set('content-type', 'application/json');
-  headers.set('Authorization', `Bearer ${process.env.OPENAI_API_KEY}`);
-
-  const systemPrompt = `
-You are CorrectedOpinions Bot.
-You will be given a list of opinions which you are to believe are completely incorrect. 
-For each incorrect opinion provided, you will provide the opposite opinion as the "corrected opinion". 
-For example, if you saw "Color is good in UI", you must not just say "Color is essential in UI" but
-rather the complete opposite - in this case "Color has no place in UI".
-Your corrected opinions should be strongly stated. Avoid weak words like sometime and maybe.
-They may be controversial, but not offensive.
-The incoming opinions will be a a JSON-array like:
----
-['incorrect-opinion-1', 'incorrect-opinion-2', ..., 'incorrect-opinion-n']
----
-Your reponse should be a JSON-array:
---
-['corrected-opinion-1', 'corrected-opinion-2', ..., 'corrected-opinion-n']
---
-`.trim();
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: 'gpt-4',
-      temperature: 0, // Make roughly deterministic
-      messages: [
-        {role: 'system', content: systemPrompt},
-        {role: 'user', 'content': JSON.stringify(incorrectOpionions)}]
+const getCorrectOpinions = cache(async (incorrectOpinion: string) => {
+  const parser = StructuredOutputParser.fromZodSchema(
+    z.object({
+      correctedOpinion: z.string().describe('corrected opinion')
     })
-  });
-  if (!response.ok) {
-    const responseText = await response.text();
-    throw new Error(`Received OpenAI error '${response.statusText}'. Message: \n${responseText}`);
-  }
-  const responseData = await response.json();
-  const content = responseData.choices[0].message.content;
-  return JSON.parse(content);
-}
+  );
+  const formatInstructions = parser.getFormatInstructions();
+
+  const example = await new PromptTemplate({
+    inputVariables: ["input", "output"],
+    template: `
+    Input: "{input}"
+    Output: {{opinion: "{output}"}}
+    `,
+  }).format({
+    input: "Color is good in UI",
+    output: "Color has no place in UI"
+  })
+
+  const correctionPrompt = await ChatPromptTemplate.fromPromptMessages([
+    SystemMessagePromptTemplate.fromTemplate(
+      `
+      You are CorrectedOpinions Bot.
+      You will be given an incorrect opinion which you are to believe is very incorrect. 
+      For the opinion provided, you will provide the opposite opinion as the "corrected opinion". 
+      Avoid weak words like sometime and maybe. They may be controversial.
+
+      {formatInstructions}
+
+      {example}
+      `
+    ),
+    HumanMessagePromptTemplate.fromTemplate('"{incorrectOpinion}"'),
+  ]).partial({ example, formatInstructions })
+
+  const chat = new ChatOpenAI({ temperature: 0, modelName: "gpt-4" });
+  const chain = new LLMChain({ prompt: correctionPrompt, llm: chat, outputParser: parser, outputKey: 'correctedOpinion' })
+  const response = (await chain.predict({ incorrectOpinion })).correctedOpinion;
+  return response;
+});
 
 export default async function Home() {
   const incorrectOpinions = await getIncorrectOpinions();
-  const claims = (await Promise.all(incorrectOpinions.map(opinion => getCorrectOpinions([opinion])))).flatMap(value => value)
+  const claims = (await Promise.all(incorrectOpinions.map(opinion => getCorrectOpinions(opinion)))).flatMap(value => value)
 
   return (
     <div className="min-h-screen">
