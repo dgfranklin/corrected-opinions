@@ -85,6 +85,9 @@ export default async function Home() {
               takes on <a href="https://correctopinions.info" target='_blank'>correctopinions.info</a>.
               They do not necessarily represent the views of the app author (but they probably do).
             </p>
+            <p>
+              <a href="/ACKNOWLEDGMENTS">Acknowledgments</a>
+            </p>
           </div>
         </div>
       </main>
