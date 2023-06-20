@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prebuild": "yarn licenses generate-disclaimer > public/acknowledgments.txt"
+    "prebuild": "yarn licenses generate-disclaimer > ACKNOWLEDGMENTS"
   },
   "dependencies": {
     "@types/node": "20.2.5",

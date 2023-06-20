@@ -86,7 +86,7 @@ export default async function Home() {
               They do not necessarily represent the views of the app author (but they probably do).
             </p>
             <p>
-              <a href="/acknowledgments.txt">Acknowledgments</a>
+              <a href="/ACKNOWLEDGMENTS">Acknowledgments</a>
             </p>
           </div>
         </div>
